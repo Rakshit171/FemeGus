@@ -55,7 +55,7 @@ class Particle {
         if (this.y < 0) this.y = canvas.height;
     }
     draw() {
-        ctx.fillStyle = `hsla(${window.themeHue || 16}, 100%, 50%, 0.4)`;
+        ctx.fillStyle = `hsla(${window.themeHue || 220}, 100%, 50%, 0.4)`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fill();
@@ -102,7 +102,7 @@ function animate() {
 document.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
     mouseY = e.clientY;
-    
+
     // Hardware-accelerated background gradients
     if (orb1 && orb2 && !window.isModalActive) {
         orb1.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
@@ -143,11 +143,11 @@ window.addEventListener('scroll', () => {
         window.requestAnimationFrame(() => {
             const maxScroll = Math.max(1, document.body.scrollHeight - window.innerHeight);
             const scrollPercent = window.scrollY / maxScroll;
-            window.themeHue = 16 + (scrollPercent * 240);
+            window.themeHue = 220 + (scrollPercent * 60);
 
             if (bgEffects) {
                 bgEffects.style.setProperty('--bg-orb-1', `hsla(${window.themeHue}, 100%, 50%, 0.15)`);
-                bgEffects.style.setProperty('--bg-orb-2', `hsla(${window.themeHue + 60}, 100%, 50%, 0.1)`);
+                bgEffects.style.setProperty('--bg-orb-2', `hsla(${window.themeHue + 40}, 100%, 50%, 0.1)`);
             }
             scrollTicking = false;
         });
@@ -255,25 +255,26 @@ document.addEventListener('click', (e) => {
     const ytId = card.getAttribute('data-yt-id');
     if (ytId && modal && modalContentWrapper) {
         window.isModalActive = true;
-        
+
         // Build iframe using Privacy Enhanced Mode (most lenient for local files)
         const iframe = document.createElement('iframe');
         iframe.id = 'yt-modal-iframe';
-        
-        // Use youtube-nocookie.com and remove origin/api params to avoid triggering strict referer checks
-        iframe.src = `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0`;
-        
+
+        // Use standard official YouTube embed URL to ensure maximum compatibility
+        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0`;
+
         // Detect if the video should be vertical based on the card's class
         const isVertical = card.classList.contains('vertical-card');
         iframe.className = isVertical ? 'in-modal-iframe vertical-iframe' : 'in-modal-iframe';
-        
-        // Basic allow list
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+
+        // Use official allow list and referrer policy
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
         iframe.allowFullscreen = true;
-        
-        modalContentWrapper.innerHTML = ''; 
+
+        modalContentWrapper.innerHTML = '';
         modalContentWrapper.appendChild(iframe);
-        
+
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
@@ -286,7 +287,7 @@ videoCards.forEach(card => {
     let cachedRect = null;
 
     card.addEventListener('mouseenter', () => {
-        card.style.transition = 'none'; 
+        card.style.transition = 'none';
         cachedRect = card.getBoundingClientRect();
     });
 
@@ -298,7 +299,7 @@ videoCards.forEach(card => {
             const y = e.clientY - cachedRect.top;
             const centerX = cachedRect.width / 2;
             const centerY = cachedRect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -6; 
+            const rotateX = ((y - centerY) / centerY) * -6;
             const rotateY = ((x - centerX) / centerX) * 6;
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
         });
@@ -315,10 +316,10 @@ videoCards.forEach(card => {
 function closeCustomModal() {
     if (!modal) return;
     window.isModalActive = false;
-    
+
     const iframe = document.getElementById('yt-modal-iframe');
     if (iframe) iframe.remove();
-    
+
     modal.classList.remove('show');
     document.body.style.overflow = '';
 }
